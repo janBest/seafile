@@ -34,7 +34,7 @@ id_to_path (FsPriv *priv, const char *obj_id, char path[],
     char *pos = path;
     int n;
 
-#if defined MIGRATION || defined SEAFILE_CLIENT
+#if defined MIGRATION
     if (version > 0) {
         n = snprintf (path, SEAF_PATH_MAX, "%s/%s/", priv->obj_dir, repo_id);
         pos += n;
@@ -361,7 +361,7 @@ obj_backend_fs_foreach_obj (ObjBackend *bend,
     char path[SEAF_PATH_MAX], *pos;
     int ret = 0;
 
-#if defined MIGRATION || defined SEAFILE_CLIENT
+#if defined MIGRATION
     if (version > 0)
         obj_dir = g_build_filename (priv->obj_dir, repo_id, NULL);
     else

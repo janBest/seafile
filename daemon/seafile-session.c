@@ -239,10 +239,11 @@ on_start_cleanup_job (void *vdata)
 {
     /* recover_interrupted_merges (); */
 
-    /* If some metadata objects are corrupt, the blocks they reference are
-     * useless anyway. So just ignore errors.
+    /* Ignore migration errors. If any blocks is not migrated successfully,
+     * there will be some sync error in run time. The user has to recover the
+     * error by resyncing.
      */
-    gc_core_run (0, 1);
+    migrate_client_v0_repos ();
 
     return vdata;
 }

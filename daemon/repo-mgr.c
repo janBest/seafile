@@ -1125,6 +1125,13 @@ need_handle_unmerged_index (SeafRepo *repo, struct index_state *istate)
     return TRUE;
 }
 
+static void
+try_remove_repo_blocks (SeafRepo *repo)
+{
+    if (seaf_branch_manager_branch_exists (seaf->branch_mgr, repo->id, "index"))
+        seaf_block_manager_remove_store (seaf->block_mgr, repo->id);
+}
+
 #if 0
 static int 
 print_index (struct index_state *istate)

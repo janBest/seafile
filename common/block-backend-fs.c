@@ -265,7 +265,7 @@ block_backend_fs_foreach_block (BlockBackend *bend,
     char path[SEAF_PATH_MAX], *pos;
     int ret = 0;
 
-#if defined MIGRATION || defined SEAFILE_CLIENT
+#if defined MIGRATION
     if (version > 0)
         block_dir = g_build_filename (priv->block_dir, store_id, NULL);
     else
@@ -408,7 +408,7 @@ get_block_path (BlockBackend *bend,
     char *pos = path;
     int n;
 
-#if defined MIGRATION || defined SEAFILE_CLIENT
+#if defined MIGRATION
     if (version > 0) {
         n = snprintf (path, SEAF_PATH_MAX, "%s/%s/", priv->block_dir, store_id);
         pos += n;
