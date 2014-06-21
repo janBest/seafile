@@ -36,7 +36,7 @@ static int getattr_user(SeafileSession *seaf, const char *user, struct stat *stb
 {
     SearpcClient *client;
     CcnetEmailUser *emailuser;
-
+	gint64 user_ctime = 0;
     client = ccnet_create_pooled_rpc_client (seaf->client_pool,
                                              NULL,
                                              "ccnet-threaded-rpcserver");
@@ -50,13 +50,15 @@ static int getattr_user(SeafileSession *seaf, const char *user, struct stat *stb
         ccnet_rpc_client_free (client);
         return -ENOENT;
     }
+	user_ctime = ccnet_email_user_get_ctime(emailuser);
     g_object_unref (emailuser);
     ccnet_rpc_client_free (client);
 
     stbuf->st_mode = S_IFDIR | 0755;
     stbuf->st_nlink = 2;
     stbuf->st_size = 4096;
-
+	stbuf->st_mtime = user_ctime;
+	
     return 0;
 }
 
@@ -70,6 +72,9 @@ static int getattr_repo(SeafileSession *seaf,
     guint32 mode = 0;
     char *id = NULL;
     int ret = 0;
+//	time_t mtime;
+//	time(&mtime);
+	
 
     repo = seaf_repo_manager_get_repo(seaf->repo_mgr, repo_id);
     if (!repo) {
@@ -102,6 +107,7 @@ static int getattr_repo(SeafileSession *seaf,
         SeafDir *dir;
         GList *l;
         int cnt = 2; /* '.' and '..' */
+		time_t mtime;
 
         dir = seaf_fs_manager_get_seafdir(seaf->fs_mgr,
                                           repo->store_id, repo->version, id);
@@ -109,24 +115,47 @@ static int getattr_repo(SeafileSession *seaf,
             for (l = dir->entries; l; l = l->next)
                 cnt++;
         }
-
+		/*
+		if(strcmp(repo_path,"/") == 0){
+			//the dir is the root of the libary ,we obtain its last modify time from the infomation of last commit
+			mtime = commit->ctime;
+		}else{
+			//get dirent of the dir
+			SeafDirent * dirent;
+			dirent = seaf_fs_manager_path_to_dirent(seaf->fs_mgr,
+                                        repo->store_id, repo->version,
+                                        commit->root_id,
+                                        repo_path, NULL);
+			if(dirent != NULL)
+				mtime = dirent->mtime;
+			
+			seaf_dirent_free ((SeafDirent *)dirent);
+		}
+		*/
         stbuf->st_size += cnt * sizeof(SeafDirent);
         stbuf->st_mode = mode | 0755;
         stbuf->st_nlink = 2;
-
+		
         seaf_dir_free (dir);
     } else if (S_ISREG(mode)) {
         Seafile *file;
-
+		SeafDirent * dirent;
         file = seaf_fs_manager_get_seafile(seaf->fs_mgr,
                                            repo->store_id, repo->version, id);
+/*		dirent = seaf_fs_manager_path_to_dirent(seaf->fs_mgr,
+                                        repo->store_id, repo->version,
+                                        commit->root_id,
+                                        repo_path, NULL);*/
+			
         if (file)
             stbuf->st_size = file->file_size;
 
         stbuf->st_mode = mode | 0644;
         stbuf->st_nlink = 1;
-
+	//	stbuf->st_mtime = dirent->mtime;
+	//	seaf_dirent_free ((SeafDirent *)dirent);
         seafile_unref (file);
+		
     } else {
         return -ENOENT;
     }

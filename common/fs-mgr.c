@@ -2049,7 +2049,11 @@ seaf_fs_manager_count_fs_files (SeafFSManager *mgr,
      if (strcmp (root_id, EMPTY_SHA1) == 0)
         return 0;
      return count_dir_files (mgr, repo_id, version, root_id);
+
 }
+
+
+
 
 SeafDir *
 seaf_fs_manager_get_seafdir_by_path (SeafFSManager *mgr,
@@ -2063,7 +2067,7 @@ seaf_fs_manager_get_seafdir_by_path (SeafFSManager *mgr,
     SeafDirent *dent;
     const char *dir_id = root_id;
     char *name, *saveptr;
-    char *tmp_path = g_strdup(path);
+    char *tmp_path = (path);
 
     dir = seaf_fs_manager_get_seafdir (mgr, repo_id, version, dir_id);
     if (!dir) {
@@ -2107,6 +2111,92 @@ seaf_fs_manager_get_seafdir_by_path (SeafFSManager *mgr,
     g_free (tmp_path);
     return dir;
 }
+
+SeafDirent * seaf_fs_manager_path_to_dirent(SeafFSManager *mgr,
+                                const char *repo_id,
+                                int version,
+                                const char *root_id,
+                                const char *path,
+                                GError **error)
+{
+		
+		char *copy = g_strdup (path);
+		int off = strlen(copy) - 1;
+		char *slash, *name;
+		SeafDir *base_dir = NULL;
+		int t = 1;
+		return NULL;
+		SeafDirent *dent ;
+		GList *p;
+		SeafDirent *tmpdent;
+	
+		
+	
+		#ifdef DEBUG
+		while (off >= 0 && copy[off] == '/')
+			copy[off--] = 0;
+	
+		if (strlen(copy) == 0) {
+			/* the path is root "/" */
+			dent = NULL;
+			goto out;
+		}
+		
+		slash = strrchr (copy, '/');
+
+		
+		if (!slash) {
+			base_dir = seaf_fs_manager_get_seafdir (mgr, repo_id, version, root_id);
+			if (!base_dir) {
+				g_warning ("Failed to find root dir %s.\n", root_id);
+				g_set_error (error, SEAFILE_DOMAIN, SEAF_ERR_GENERAL, " ");
+				goto out;
+			}
+			name = copy;
+		} else {
+			*slash = 0;
+			name = slash + 1;
+			GError *tmp_error = NULL;
+			base_dir = seaf_fs_manager_get_seafdir_by_path (mgr,
+															repo_id,
+															version,
+															root_id,
+															copy,
+															&tmp_error);
+			if (tmp_error &&
+				!g_error_matches(tmp_error,
+								 SEAFILE_DOMAIN,
+								 SEAF_ERR_PATH_NO_EXIST)) {
+				g_warning ("Failed to get dir for %s.\n", copy);
+				g_propagate_error (error, tmp_error);
+				goto out;
+			}
+	
+			/* The path doesn't exist in this commit. */
+			if (!base_dir)
+				goto out;
+		}
+
+		
+		for (p = base_dir->entries; p != NULL; p = p->next) {
+			tmpdent = p->data;
+			if (strcmp (tmpdent->name, name) == 0) {
+				memcpy ((void *)dent,(void *)tmpdent,sizeof(SeafDirent));
+				break;
+			}
+		}
+	
+	out:
+		if (base_dir)
+			seaf_dir_free (base_dir);
+		g_free (copy);
+		return dent;
+	debug:
+		return NULL;
+	#endif
+	
+}
+
 
 char *
 seaf_fs_manager_path_to_obj_id (SeafFSManager *mgr,

@@ -302,6 +302,16 @@ seaf_fs_manager_count_fs_files (SeafFSManager *mgr,
                                 int version,
                                 const char *root_id);
 
+
+SeafDirent * 
+seaf_fs_manager_path_to_dirent(SeafFSManager *mgr,
+                                const char *repo_id,
+                                int version,
+                                const char *root_id,
+                                const char *path,
+                                GError **error);
+
+
 SeafDir *
 seaf_fs_manager_get_seafdir_by_path(SeafFSManager *mgr,
                                     const char *repo_id,
