@@ -131,7 +131,11 @@ static int readdir_user(SeafileSession *seaf, const char *user,
             seaf_repo_unref (repo);
             continue;
         }
-
+		
+		//skip the encrypted repo
+		if(repo -> encrypted)
+			continue;
+		
         char *clean_repo_name = replace_slash (repo->name);
 
         name = g_string_new ("");

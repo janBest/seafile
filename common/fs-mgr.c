@@ -2067,7 +2067,7 @@ seaf_fs_manager_get_seafdir_by_path (SeafFSManager *mgr,
     SeafDirent *dent;
     const char *dir_id = root_id;
     char *name, *saveptr;
-    char *tmp_path = (path);
+    char *tmp_path = g_strdup(path);
 
     dir = seaf_fs_manager_get_seafdir (mgr, repo_id, version, dir_id);
     if (!dir) {
@@ -2124,20 +2124,23 @@ SeafDirent * seaf_fs_manager_path_to_dirent(SeafFSManager *mgr,
 		int off = strlen(copy) - 1;
 		char *slash, *name;
 		SeafDir *base_dir = NULL;
-		int t = 1;
-		return NULL;
-		SeafDirent *dent ;
+		SeafDirent *dent = g_new0 (SeafDirent,1);
 		GList *p;
 		SeafDirent *tmpdent;
-	
+
+		if(!dent){
+			seaf_dirent_free (dent);
+			dent = NULL;
+			goto	out;
+
+		}
 		
-	
-		#ifdef DEBUG
 		while (off >= 0 && copy[off] == '/')
 			copy[off--] = 0;
 	
 		if (strlen(copy) == 0) {
 			/* the path is root "/" */
+			seaf_dirent_free (dent);
 			dent = NULL;
 			goto out;
 		}
@@ -2150,6 +2153,8 @@ SeafDirent * seaf_fs_manager_path_to_dirent(SeafFSManager *mgr,
 			if (!base_dir) {
 				g_warning ("Failed to find root dir %s.\n", root_id);
 				g_set_error (error, SEAFILE_DOMAIN, SEAF_ERR_GENERAL, " ");
+				seaf_dirent_free (dent);
+			    dent = NULL;
 				goto out;
 			}
 			name = copy;
@@ -2169,19 +2174,25 @@ SeafDirent * seaf_fs_manager_path_to_dirent(SeafFSManager *mgr,
 								 SEAF_ERR_PATH_NO_EXIST)) {
 				g_warning ("Failed to get dir for %s.\n", copy);
 				g_propagate_error (error, tmp_error);
+				seaf_dirent_free (dent);
+			    dent = NULL;
 				goto out;
 			}
 	
 			/* The path doesn't exist in this commit. */
-			if (!base_dir)
+			if (!base_dir){
+				seaf_dirent_free (dent);
+				dent = NULL;
 				goto out;
+			}
 		}
-
+		
 		
 		for (p = base_dir->entries; p != NULL; p = p->next) {
 			tmpdent = p->data;
 			if (strcmp (tmpdent->name, name) == 0) {
-				memcpy ((void *)dent,(void *)tmpdent,sizeof(SeafDirent));
+				
+				dent = seaf_dirent_dup(tmpdent);
 				break;
 			}
 		}
@@ -2191,10 +2202,7 @@ SeafDirent * seaf_fs_manager_path_to_dirent(SeafFSManager *mgr,
 			seaf_dir_free (base_dir);
 		g_free (copy);
 		return dent;
-	debug:
-		return NULL;
-	#endif
-	
+
 }
 
 
