@@ -3,6 +3,13 @@
 
 #include "seafile-session.h"
 
+SeafDirent *fuse_get_dirent_by_path (SeafFSManager *mgr,
+                       const char *repo_id,
+                       int version,
+                       const char *root_id,
+                       const char *path);
+
+
 int parse_fuse_path (const char *path,
                      int *n_parts, char **user, char **repo_id, char **repo_path);
 

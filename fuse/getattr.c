@@ -107,7 +107,7 @@ static int getattr_repo(SeafileSession *seaf,
         SeafDir *dir;
         GList *l;
         int cnt = 2; /* '.' and '..' */
-		time_t mtime;
+        time_t mtime;
 
         dir = seaf_fs_manager_get_seafdir(seaf->fs_mgr,
                                           repo->store_id, repo->version, id);
@@ -116,18 +116,19 @@ static int getattr_repo(SeafileSession *seaf,
                 cnt++;
         }
 		
-		if(strcmp(repo_path,"/") == 0){
+        if(strcmp(repo_path,"/") == 0){
 			//the dir is the root of the libary ,we obtain its last modify time from the infomation of last commit
-			mtime = commit->ctime;
-		}else{
+            mtime = commit->ctime;
+        } else {
 			//get dirent of the dir
-			SeafDirent * dirent;
-			dirent = seaf_fs_manager_path_to_dirent(seaf->fs_mgr,
-                                        repo->store_id, repo->version,
+            SeafDirent * dirent;
+            dirent = fuse_get_dirent_by_path(seaf->fs_mgr,
+	                                    repo->store_id, repo->version,
                                         commit->root_id,
-                                        repo_path, NULL);
-			if(dirent != NULL)
-				mtime = dirent->mtime;
+                                        repo_path);
+			
+			if((dirent != NULL)&&(repo->version != 0))
+		        mtime = dirent->mtime;
 			
 			seaf_dirent_free ((SeafDirent *)dirent);
 		}
@@ -143,12 +144,12 @@ static int getattr_repo(SeafileSession *seaf,
 	
         file = seaf_fs_manager_get_seafile(seaf->fs_mgr,
                                            repo->store_id, repo->version, id);
-		dirent = seaf_fs_manager_path_to_dirent(seaf->fs_mgr,
+		dirent = fuse_get_dirent_by_path(seaf->fs_mgr,
                                         repo->store_id, repo->version,
                                         commit->root_id,
-                                        repo_path, NULL);
-		if(dirent)
-			stbuf->st_mtime = dirent->mtime;
+                                        repo_path);
+		if((dirent != NULL)&&(repo->version != 0))
+	        stbuf->st_mtime = dirent->mtime;
 			
         if (file)
             stbuf->st_size = file->file_size;

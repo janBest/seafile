@@ -2206,6 +2206,7 @@ SeafDirent * seaf_fs_manager_path_to_dirent(SeafFSManager *mgr,
 }
 
 
+
 char *
 seaf_fs_manager_path_to_obj_id (SeafFSManager *mgr,
                                 const char *repo_id,

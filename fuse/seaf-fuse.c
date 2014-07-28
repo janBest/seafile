@@ -21,6 +21,9 @@
 CcnetClient *ccnet_client = NULL;
 SeafileSession *seaf = NULL;
 
+
+
+
 static char *parse_repo_id (const char *repo_id_name)
 {
     if (strlen(repo_id_name) < 36)
@@ -82,6 +85,57 @@ int parse_fuse_path (const char *path,
     g_strfreev (tokens);
     return ret;
 }
+
+
+
+SeafDirent *
+fuse_get_dirent_by_path (SeafFSManager *mgr,
+                       const char *repo_id,
+                       int version,
+                       const char *root_id,
+                       const char *path)
+{
+    SeafDirent *dent = NULL;
+    SeafDir *dir = NULL;
+	char *parent_dir = NULL,*file_name = NULL;
+
+	
+    parent_dir  = g_path_get_dirname(path);
+    file_name = g_path_get_basename(path);
+	
+	if(strcmp(parent_dir,".") == 0)
+		dir = seaf_fs_manager_get_seafdir (mgr, repo_id, version, root_id);
+	else
+	    dir = seaf_fs_manager_get_seafdir_by_path (mgr,
+                                               repo_id, version,
+                                               root_id,
+                                               parent_dir, NULL);
+
+    if (!dir) {
+        seaf_warning ("dir %s doesn't exist in repo %s.\n", parent_dir,file_name, repo_id);
+        goto out;
+    }
+
+    GList *p;
+    for (p = dir->entries; p; p = p->next) {
+        SeafDirent *d = p->data;
+        int r = strcmp (d->name, file_name);
+        if (r == 0) {
+            dent = seaf_dirent_dup(d);
+            break;
+        }
+    }
+
+
+out:
+
+    if (dir)
+        seaf_dir_free (dir);
+
+    return dent;
+}
+
+
 
 static int seaf_fuse_getattr(const char *path, struct stat *stbuf)
 {
