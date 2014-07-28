@@ -37,7 +37,7 @@ static int getattr_user(SeafileSession *seaf, const char *user, struct stat *stb
 {
     SearpcClient *client;
     CcnetEmailUser *emailuser;
-	gint64 user_ctime = 0;
+    gint64 user_ctime = 0;
     client = ccnet_create_pooled_rpc_client (seaf->client_pool,
                                              NULL,
                                              "ccnet-threaded-rpcserver");
@@ -51,14 +51,14 @@ static int getattr_user(SeafileSession *seaf, const char *user, struct stat *stb
         ccnet_rpc_client_free (client);
         return -ENOENT;
     }
-	user_ctime = ccnet_email_user_get_ctime(emailuser);
+    user_ctime = ccnet_email_user_get_ctime(emailuser);
     g_object_unref (emailuser);
     ccnet_rpc_client_free (client);
 
     stbuf->st_mode = S_IFDIR | 0755;
     stbuf->st_nlink = 2;
     stbuf->st_size = 4096;
-	stbuf->st_mtime = user_ctime;
+    stbuf->st_mtime = user_ctime;
 	
     return 0;
 }
@@ -136,11 +136,11 @@ static int getattr_repo(SeafileSession *seaf,
         stbuf->st_size += cnt * sizeof(SeafDirent);
         stbuf->st_mode = mode | 0755;
         stbuf->st_nlink = 2;
-		stbuf->st_mtime = mtime;
+	stbuf->st_mtime = mtime;
         seaf_dir_free (dir);
     } else if (S_ISREG(mode)) {
         Seafile *file;
-		SeafDirent * dirent;
+	SeafDirent * dirent;
 	
         file = seaf_fs_manager_get_seafile(seaf->fs_mgr,
                                            repo->store_id, repo->version, id);
@@ -157,12 +157,12 @@ static int getattr_repo(SeafileSession *seaf,
         stbuf->st_mode = mode | 0644;
         stbuf->st_nlink = 1;
 
-		seaf_dirent_free ((SeafDirent *)dirent);
+	seaf_dirent_free ((SeafDirent *)dirent);
         seafile_unref (file);
 		
     } else {
         return -ENOENT;
-		seaf_warning ("Unknown type.\n");
+	seaf_warning ("Unknown type.\n");
     }
 
 out:

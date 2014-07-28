@@ -97,16 +97,16 @@ fuse_get_dirent_by_path (SeafFSManager *mgr,
 {
     SeafDirent *dent = NULL;
     SeafDir *dir = NULL;
-	char *parent_dir = NULL,*file_name = NULL;
+    char *parent_dir = NULL,*file_name = NULL;
 
 	
     parent_dir  = g_path_get_dirname(path);
     file_name = g_path_get_basename(path);
 	
-	if(strcmp(parent_dir,".") == 0)
-		dir = seaf_fs_manager_get_seafdir (mgr, repo_id, version, root_id);
-	else
-	    dir = seaf_fs_manager_get_seafdir_by_path (mgr,
+    if(strcmp(parent_dir,".") == 0)
+        dir = seaf_fs_manager_get_seafdir (mgr, repo_id, version, root_id);
+    else
+        dir = seaf_fs_manager_get_seafdir_by_path (mgr,
                                                repo_id, version,
                                                root_id,
                                                parent_dir, NULL);
